@@ -8,12 +8,13 @@
  * [] Author:	   @Seth
  * 
  */
+
 package main;
 
 /*
  * The Logistic function is defined as:
  * 
- * f(x) = L / 1 + [e ^ -k(x - x0)],
+ * f(x) = L / {1 + [e ^ -k(x - x0)]},
  * 
  * where:
  * 		e  : Euler's number
@@ -21,24 +22,33 @@ package main;
  * 		k  : growth rate
  * 		x0 : x value of the midPoint
  */
+
 public class LogisticFunction
 {
-	final double e = Math.E;	// Euler's number
-	double maxVal  = 0;			// L
-	double growthRate = 0;		// k
-	double midPoint   = 0;		// x0
+	double maxVal;			 // L
+	double growthRate;		 // k
+	double midPoint;		 // x0
 	
-	
-	public double LogiFunc(double x)
+	// = = = CONSTRUCTOR = = =
+	public LogisticFunction(double maxVal, double growthRate, double midPoint)
 	{
-		double y;
-		double exponentTerm;
-		
-		exponentTerm = - (growthRate) * (x - midPoint);
-		y = Math.pow(e, exponentTerm);
-		y += 1;
-		y = maxVal / y;
-		return y;
+		this.maxVal = maxVal;
+		this.growthRate = growthRate;
+		this.midPoint   = midPoint;
 	}
 	
+	public double logiFunc(double x)
+	{
+		double y;				// the output
+		double exponentTerm;	// the exponential term in the divisor/denominator
+		double denominator;
+		
+		exponentTerm = - (growthRate) * (x - midPoint);
+		// Math.exp(x) is equivalent to e ^ x
+		// e ^ -k(x - x0)
+		denominator = Math.exp(exponentTerm);
+		denominator += 1;
+		y = maxVal / denominator;	// L / y
+		return y;
+	}
 }
