@@ -56,22 +56,27 @@ public class Brush extends Entity
 	
 	public void update()
 	{
-		if (keyH.upPressed == true) {
-			direction = "up";
-			y -= speed;
+		int x_direction = 0;
+		int y_direction = 0;
+		
+		if (keyH.upPressed)		y_direction -= 1;
+		if (keyH.downPressed)	y_direction += 1;
+		if (keyH.leftPressed)	x_direction -= 1;
+		if (keyH.rightPressed)	x_direction += 1;
+		
+		// - - - Normalize the Vector - - -
+		double dx = x_direction;
+		double dy = y_direction;
+		double hypotenuse = Math.sqrt(dx * dx + dy * dy);
+		
+		if (hypotenuse != 0) {
+			dx /= hypotenuse;
+			dy /= hypotenuse;
 		}
-		else if (keyH.downPressed == true) {
-			direction = "down";
-			y += speed;
-		}
-		else if (keyH.leftPressed == true) {
-			direction = "left";
-			x -= speed;
-		}
-		else if (keyH.rightPressed == true) {
-			direction = "right";
-			x += speed;
-		}
+		
+		// apply vector normalization
+		x += dx * speed;
+		y += dy * speed;
 		
 		// - - - Brush movement restriction - - -
 		int minX = GamePanel.CANVAS_X;
@@ -80,8 +85,9 @@ public class Brush extends Entity
 		int maxY = GamePanel.CANVAS_Y + GamePanel.CANVAS_SIZE - BRUSH_SIZE;
 		
 		if (x < minX) x = minX;
-		if (y < minX) y = minY;
 		if (x > maxX) x = maxX;
-		if (y > maxX) y = maxX;
+		
+		if (y < minY) y = minY;
+		if (y > maxY) y = maxY;
 	}
 }
