@@ -19,13 +19,23 @@ public class Brush extends Entity
 	
 	final int SCALE = 2;			// scale up canvas and pixel sizes
 	
+	private int actualBrushWidth;
+	private int actualBrushHeight;
+	
+	// movement fields in double data type to avoid "jittery" movement
+	private double posX, posY;
+	
+	
 	final int BRUSH_SIZE = 12;		// size of brush
+	
 	
 	// - - - Initialize Logistic Function fields - - -
 	private double speedTimer = 0;
 	private final double TIMER_INCREMENT = 0.1;
 	private final double BASE_SPEED = 2.0;
+	
 	private LogisticFunction logisticFunc;
+	
 	
 	// = = = BRUSH CONSTRUCTOR = = =
 	public Brush(GamePanel gamePanel, main.KeyHandler keyH)
@@ -44,31 +54,14 @@ public class Brush extends Entity
 		);
 	}
 	
-	public void setDefaultValues()
-	{
-		x = GamePanel.CANVAS_X + (GamePanel.CANVAS_SIZE / 2);
-	    y = GamePanel.CANVAS_Y + (GamePanel.CANVAS_SIZE / 2);
-		speed = 4;
-	}
 	
 	public void draw(Graphics2D g2)
 	{
-		g2.drawImage(brushPNG, x, y,
-				brushPNG.getWidth()  * SCALE,
-				brushPNG.getHeight() * SCALE,
-				null);
+		g2.drawImage(brushPNG, (int)posX, (int)posY,
+					 actualBrushWidth, actualBrushHeight,
+					 null);
 	}
 	
-	public void getBrushPNG()
-	{
-		try {
-			brushPNG = ImageIO.read(getClass().getResourceAsStream("/brush_assets/brush.png"));
-		}
-		
-		catch (IOException e) {
-			e.printStackTrace();
-		}
-	}
 	
 	// - - - detect & validate movement - - -
 	private Vector2D validateMovement()
@@ -84,6 +77,29 @@ public class Brush extends Entity
 		return new Vector2D(x_direction, y_direction);
 	}
 	
+	
+	public void getBrushPNG()
+	{
+		try {
+			brushPNG = ImageIO.read(getClass().getResourceAsStream("/brush_assets/brush.png"));
+		
+			actualBrushWidth  = brushPNG.getWidth()  * SCALE;
+			actualBrushHeight = brushPNG.getHeight() * SCALE;
+		}
+		
+		catch (IOException e) {
+			e.printStackTrace();
+			actualBrushWidth = actualBrushHeight = BRUSH_SIZE;
+		}
+	}
+	
+	public void setDefaultValues()
+	{
+		x = GamePanel.CANVAS_X + (GamePanel.CANVAS_WIDTH  - actualBrushWidth)  / 2;
+		y = GamePanel.CANVAS_Y + (GamePanel.CANVAS_HEIGHT - actualBrushHeight) / 2;
+		speed = 4;
+	}
+	
 	// - - - method for Vector Normalization - - -
 	private Vector2D normalizeVector(Vector2D v)
 	{
@@ -95,6 +111,7 @@ public class Brush extends Entity
 		);
 		return new Vector2D(0, 0);
 	}
+	
 	
 	public void update()
 	{
@@ -112,19 +129,28 @@ public class Brush extends Entity
 		Vector2D direction = normalizeVector(input);
 		
 		// apply to movement
-		x += direction.x * dynamicSpeed;
-		y += direction.y * dynamicSpeed;		
+		posX += direction.x * dynamicSpeed;
+		posY += direction.y * dynamicSpeed;		
 		
 		// - - - Brush movement restriction - - -
-		int minX = GamePanel.CANVAS_X;
-		int minY = GamePanel.CANVAS_Y;
-		int maxX = GamePanel.CANVAS_X + GamePanel.CANVAS_SIZE - BRUSH_SIZE;
-		int maxY = GamePanel.CANVAS_Y + GamePanel.CANVAS_SIZE - BRUSH_SIZE;
+		double minX = GamePanel.CANVAS_X - 16;
+		double minY = GamePanel.CANVAS_Y - 16;
 		
-		if (x < minX) x = minX;
-		if (x > maxX) x = maxX;
+		double maxX = GamePanel.CANVAS_X + GamePanel.CANVAS_WIDTH  - actualBrushWidth  + 10;
+		double maxY = GamePanel.CANVAS_Y + GamePanel.CANVAS_HEIGHT - actualBrushHeight + 10;
 		
-		if (y < minY) y = minY;
-		if (y > maxY) y = maxY;
+		if (posX < minX) posX = minX;
+		if (posX > maxX) posX = maxX;
+		
+		if (posY < minY) posY = minY;
+		if (posY > maxY) posY = maxY;
+		
+		// painting logic
+		if (keyH.spacePressed) {
+			int centerX = (int) (posX + actualBrushWidth  / 2);
+			int centerY = (int) (posY + actualBrushHeight / 2);
+			
+			gamePanel.paintGrid.paintPixel(centerX, centerY, BRUSH_SIZE);
+		}
 	}
 }

@@ -2,49 +2,89 @@ package main;
 
 import java.awt.Color;
 import java.awt.Dimension;
+import java.awt.Font;
 import java.awt.Graphics;
 import java.awt.Graphics2D;
 
+import javax.swing.JLabel;
 import javax.swing.JPanel;
 
 // === OWN CLASSES ======================================
 import main.KeyHandler;
 import entity.Brush;
+import main.PaintGrid;
 
 public class GamePanel extends JPanel implements Runnable
 {
 	// === SCREEN SETTINGS ==============================
-	final int scrnWidth  = 950;
-	final int scrnHeight = 950;
+	// - - - SCREEN SIZE - - -
+	public final static int SCRN_WIDTH  = 1000;
+	public final static int SCRN_HEIGHT = 700;
 	// - - - CANVAS SETTINGS - - -
-	public final static int CANVAS_SIZE = 800;
-	public final static int CANVAS_X = 150;
-	public final static int CANVAS_Y = 0;
+	public final static int CANVAS_WIDTH  = 700;
+	public final static int CANVAS_HEIGHT = 620;
+	// - - - MARGINS (for canvas from panel edge) - - -
+	public final static int MARGIN_LEFT  = 288;
+	public final static int MARGIN_RIGHT = 12;
+	// - - - PROGRESS BAR AREA HEIGHT - - -
+	public final static int PROGRESSBAR_HEIGHT = 30;
+	public final static int PROGRESSBAR_TOP_MARGIN = 10;
+	// - - - CANVAS POSITION - - -
+	// - - - position for canvas on the x-axis
+	public final static int CANVAS_X = MARGIN_LEFT;
+	// - - - position for canvas on the y-axis
+	public final static int CANVAS_Y = PROGRESSBAR_TOP_MARGIN + PROGRESSBAR_HEIGHT + 10;
+	// - - - ONE BILLION - - -
+	public final static double ONE_BILLION = 1_000_000_000.0;
 	
 	// === set FPS ======================================
 	final int FPS = 60;
+	
 	
 	// === for MOVEMENT =================================
 	KeyHandler keyH = new KeyHandler();
 	Thread gameThread;
 	
+	
 	// === for ENTITIES =================================
 	Brush brush;
+	
+	
+	// === for TILE SIZE ================================
+	public static final int TILE_SIZE = 10;
+	
+	
+	// === for TIMER LOGIC ==============================
+	private long startTime;
+	private double elapsedSeconds;
+	private final double ROUND_TIME = 60;
+	
+	
+	// === for PAINT LOGIC ==============================
+	public PaintGrid paintGrid;
+	
 	
 	// === MAIN CONSTRUCTOR =============================
 	public GamePanel()
 	{
-		this.setPreferredSize(new Dimension(scrnWidth, scrnHeight));
+		this.setPreferredSize(new Dimension(SCRN_WIDTH, SCRN_HEIGHT));
 		this.setBackground(Color.gray);
 		this.setDoubleBuffered(true);
 		this.addKeyListener(keyH);
 		this.setFocusable(true);
 		
+		paintGrid = new PaintGrid(
+				CANVAS_X, CANVAS_Y,
+				CANVAS_WIDTH, CANVAS_HEIGHT,
+				TILE_SIZE
+		);
+		
 		brush = new Brush(this, keyH);	// instantiate Brush here
+		startTime = System.nanoTime();
 	}
 	
 	public void startGameThread()
-	{
+	{	
 		gameThread = new Thread(this);
 		gameThread.start();
 	}
@@ -73,9 +113,23 @@ public class GamePanel extends JPanel implements Runnable
 	public void update()
 	{
 		brush.update();	// keeps brush moving with key inputs
+		
+		// update game time
+		long now = System.nanoTime();
+		elapsedSeconds = (now - startTime) / ONE_BILLION;
 	}
 	
+	
 	// === DRAW | the "pencil" per se ==========================
+	/**
+	 * Renders all visual elements of the panel, including:
+	 * -	canvas area
+	 * -	border
+	 * -	progress bar
+	 * -	current brush state
+	 * @param g the Graphics context provided by Swing for rendering;
+	 * 			automatically supplied during repaint operations
+	 */
 	@Override
 	public void paintComponent(Graphics g)
 	{
@@ -84,17 +138,63 @@ public class GamePanel extends JPanel implements Runnable
 				
 		// - - - draw canvas area - - -
 		g2.setColor(Color.WHITE);
-		// note:::	fillRect parameters:::
-		// (x-cord of top left corner of rectangle, y-cord of the top-left corner of rectangle...)
-		// (..., width of rectangle, height of rectangle)
-		g2.fillRect(CANVAS_X, CANVAS_Y, CANVAS_SIZE, CANVAS_SIZE);
+		// fillRect(x-axis position, y-axis position, width, height)
+		g2.fillRect(CANVAS_X, CANVAS_Y, CANVAS_WIDTH, CANVAS_HEIGHT);
+		
 		
 		// - - - draw canvas border - - -
 		g2.setColor(Color.BLACK);
-		g2.drawRect(CANVAS_X, CANVAS_Y, CANVAS_SIZE, CANVAS_SIZE);
+		g2.drawRect(CANVAS_X, CANVAS_Y, CANVAS_WIDTH, CANVAS_HEIGHT);
+		
+		
+		// - - - draw progress bar area - - -
+		g2.setColor(Color.GREEN);
+		
+		
+		int progressBarX = MARGIN_LEFT;
+		int progressBarY = PROGRESSBAR_TOP_MARGIN;
+		int progressBarW = SCRN_WIDTH - (MARGIN_LEFT + MARGIN_RIGHT);
+		
+		
+		// fillRect(left, top, width, height)
+		g2.fillRect(progressBarX, progressBarY, progressBarW, PROGRESSBAR_HEIGHT);
+		
+		
+		// dynamic progress bar
+		double progress = paintGrid.getPaintProgress();
+		int maxWidth = SCRN_WIDTH - CANVAS_X - MARGIN_RIGHT;
+		
+		
+		int fillWidth = (int)(maxWidth * progress / 100.00);
+		
+		
+		// progress bar background
+		g2.setColor(Color.DARK_GRAY);
+		g2.fillRect(CANVAS_X, PROGRESSBAR_TOP_MARGIN, maxWidth, PROGRESSBAR_HEIGHT);
+		
+		
+		// fill
+		g2.setColor(Color.GREEN);
+		g2.fillRect(CANVAS_X, PROGRESSBAR_TOP_MARGIN, fillWidth, PROGRESSBAR_HEIGHT);
+		
+		
+		// borders
+		g2.setColor(Color.BLACK);
+		g2.drawRect(CANVAS_X, PROGRESSBAR_TOP_MARGIN, maxWidth, PROGRESSBAR_HEIGHT);
+		
+		
+		// - - - draw clock - - -
+		g2.setColor(Color.WHITE);
+		g2.drawString(
+				"Time: " + String.format("%.1f", elapsedSeconds),
+				20, 30
+		);
+				
 		
 		// - - - draw brush - - -
+		paintGrid.draw(g2);
 		brush.draw(g2);
+		
 		
 		g2.dispose();
 	}
