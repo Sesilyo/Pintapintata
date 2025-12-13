@@ -48,8 +48,8 @@ public class Brush extends Entity
 	
 	
 	// pen tip offset for paint accuracy
-	private final int TIP_OFFSET_X = 10;
-	private final int TIP_OFFSET_Y = 57;
+	private final int TIP_OFFSET_X = 2;
+	private final int TIP_OFFSET_Y = 35;
 	
 	
 	// = = = BRUSH CONSTRUCTOR = = =
@@ -151,9 +151,9 @@ public class Brush extends Entity
 	}
 	
 	
-	// - - - helper methods to get brush center - - -
-	private int getPaintX() { return (int)(posX + TIP_OFFSET_X  / 2);}
-	private int getPaintY() { return (int)(posY + TIP_OFFSET_Y  / 2);}
+	// - - - helper methods to get brush offset - - -
+	private int getPaintX() { return (int)(posX + TIP_OFFSET_X);}
+	private int getPaintY() { return (int)(posY + TIP_OFFSET_Y);}
 	
 	
 	public void update()
@@ -176,11 +176,12 @@ public class Brush extends Entity
 		posY += direction.y * dynamicSpeed;		
 		
 		// - - - Brush movement restriction - - -
-		double minX = GamePanel.CANVAS_X;
-		double minY = GamePanel.CANVAS_Y;
+		int maxBrushRadius = (BASE_BRUSH_SIZE + (int) brushSizeLogisticFunc.getMaxVal()) / 2;
+		double minX = GamePanel.CANVAS_X - TIP_OFFSET_X + maxBrushRadius;
+		double minY = GamePanel.CANVAS_Y - TIP_OFFSET_Y + maxBrushRadius;
 		
-		double maxX = GamePanel.CANVAS_X + GamePanel.CANVAS_WIDTH  - TIP_OFFSET_X;
-		double maxY = GamePanel.CANVAS_Y + GamePanel.CANVAS_HEIGHT - TIP_OFFSET_Y;
+		double maxX = GamePanel.CANVAS_X + GamePanel.CANVAS_WIDTH  - TIP_OFFSET_X - maxBrushRadius;
+		double maxY = GamePanel.CANVAS_Y + GamePanel.CANVAS_HEIGHT - TIP_OFFSET_Y - maxBrushRadius;
 		
 		if (posX < minX) posX = minX;
 		if (posX > maxX) posX = maxX;
@@ -192,8 +193,12 @@ public class Brush extends Entity
 		if (keyH.spacePressed) sizeTimer += SIZE_TIMER_INCREMENT;
 		else sizeTimer = 0;
 		
-		currentBrushSize = BASE_BRUSH_SIZE + (int)brushSizeLogisticFunc.logiFunc(sizeTimer);
-		if (keyH.spacePressed) gamePanel.paintGrid.paintPixel(getPaintX(), getPaintY(), currentBrushSize);
+		currentBrushSize = BASE_BRUSH_SIZE + (int) brushSizeLogisticFunc.logiFunc(sizeTimer);
+		
+		if (keyH.spacePressed) {
+			gamePanel.paintGrid.paintPixel(getPaintX(), getPaintY(), currentBrushSize);
+		}
+
 		
 	}
 }

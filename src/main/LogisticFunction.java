@@ -51,4 +51,6 @@ public class LogisticFunction
 		y = maxVal / denominator;	// L / y
 		return y;
 	}
+	
+	public double getMaxVal() { return this.maxVal;}
 }
