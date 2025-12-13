@@ -7,6 +7,7 @@ import javax.imageio.ImageIO;
 import main.GamePanel;
 import main.LogisticFunction;
 
+import java.awt.Color;
 import java.awt.Graphics2D;
 import java.awt.image.BufferedImage;
 
@@ -26,15 +27,29 @@ public class Brush extends Entity
 	private double posX, posY;
 	
 	
-	final int BRUSH_SIZE = 12;		// size of brush
+	final   int BRUSH_SIZE = 12;		// base size of brush
+	private int currentBrushSize;
 	
 	
 	// - - - Initialize Logistic Function fields - - -
+	// +- for speed --------------------------+
 	private double speedTimer = 0;
 	private final double TIMER_INCREMENT = 0.1;
 	private final double BASE_SPEED = 2.0;
+	private LogisticFunction brushSpeedLogisticFunc;
+	// +--------------------------------------+
 	
-	private LogisticFunction logisticFunc;
+	// +- for brush --------------------------+
+	private double sizeTimer = 0;
+	private final double SIZE_TIMER_INCREMENT = 0.1;
+	private final int BASE_BRUSH_SIZE = 12;
+	private LogisticFunction brushSizeLogisticFunc;
+	// +--------------------------------------+
+	
+	
+	// pen tip offset for paint accuracy
+	private final int TIP_OFFSET_X = 10;
+	private final int TIP_OFFSET_Y = 57;
 	
 	
 	// = = = BRUSH CONSTRUCTOR = = =
@@ -43,23 +58,33 @@ public class Brush extends Entity
 		this.gamePanel = gamePanel;
 		this.keyH = keyH;
 		
-		setDefaultValues();
 		getBrushPNG();
+		setDefaultValues();
 		
 		// set values for Logistic function
-		logisticFunc = new LogisticFunction(
+		brushSpeedLogisticFunc = new LogisticFunction(
 				6.0,	// L  : max speed of brush
 				1.0,	// k  : growth rate of brush speed
 				10.0	// x0 : midpoint
+		);
+		
+		brushSizeLogisticFunc = new LogisticFunction(
+				12.0,	// L  : max side added
+				0.5,	// k  : growth rate of brush size
+				8.0		// x0 : midpoint
 		);
 	}
 	
 	
 	public void draw(Graphics2D g2)
 	{
+		// draw brush sprite
 		g2.drawImage(brushPNG, (int)posX, (int)posY,
 					 actualBrushWidth, actualBrushHeight,
 					 null);
+		
+		// draw preview of brush sprite
+		if (keyH.spacePressed) drawPaintPreview(g2, currentBrushSize);
 	}
 	
 	
@@ -112,6 +137,24 @@ public class Brush extends Entity
 		return new Vector2D(0, 0);
 	}
 	
+	private void drawPaintPreview(Graphics2D g2, int brushSize)
+	{
+		int paintRadius = brushSize / 2;
+		
+		g2.setColor(new Color(255, 0, 55, 80));
+		g2.fillRect(
+				getPaintX() - paintRadius,
+				getPaintY() - paintRadius,
+				brushSize,
+				brushSize
+		);
+	}
+	
+	
+	// - - - helper methods to get brush center - - -
+	private int getPaintX() { return (int)(posX + TIP_OFFSET_X  / 2);}
+	private int getPaintY() { return (int)(posY + TIP_OFFSET_Y  / 2);}
+	
 	
 	public void update()
 	{
@@ -123,7 +166,7 @@ public class Brush extends Entity
 		if (moving) speedTimer += TIMER_INCREMENT;
 		else 		speedTimer = 0;
 		
-		double dynamicSpeed = BASE_SPEED + logisticFunc.logiFunc(speedTimer);
+		double dynamicSpeed = BASE_SPEED + brushSpeedLogisticFunc.logiFunc(speedTimer);
 		
 		// apply vector normalization
 		Vector2D direction = normalizeVector(input);
@@ -133,11 +176,11 @@ public class Brush extends Entity
 		posY += direction.y * dynamicSpeed;		
 		
 		// - - - Brush movement restriction - - -
-		double minX = GamePanel.CANVAS_X - 16;
-		double minY = GamePanel.CANVAS_Y - 16;
+		double minX = GamePanel.CANVAS_X;
+		double minY = GamePanel.CANVAS_Y;
 		
-		double maxX = GamePanel.CANVAS_X + GamePanel.CANVAS_WIDTH  - actualBrushWidth  + 10;
-		double maxY = GamePanel.CANVAS_Y + GamePanel.CANVAS_HEIGHT - actualBrushHeight + 10;
+		double maxX = GamePanel.CANVAS_X + GamePanel.CANVAS_WIDTH  - TIP_OFFSET_X;
+		double maxY = GamePanel.CANVAS_Y + GamePanel.CANVAS_HEIGHT - TIP_OFFSET_Y;
 		
 		if (posX < minX) posX = minX;
 		if (posX > maxX) posX = maxX;
@@ -146,11 +189,11 @@ public class Brush extends Entity
 		if (posY > maxY) posY = maxY;
 		
 		// painting logic
-		if (keyH.spacePressed) {
-			int centerX = (int) (posX + actualBrushWidth  / 2);
-			int centerY = (int) (posY + actualBrushHeight / 2);
-			
-			gamePanel.paintGrid.paintPixel(centerX, centerY, BRUSH_SIZE);
-		}
+		if (keyH.spacePressed) sizeTimer += SIZE_TIMER_INCREMENT;
+		else sizeTimer = 0;
+		
+		currentBrushSize = BASE_BRUSH_SIZE + (int)brushSizeLogisticFunc.logiFunc(sizeTimer);
+		if (keyH.spacePressed) gamePanel.paintGrid.paintPixel(getPaintX(), getPaintY(), currentBrushSize);
+		
 	}
 }

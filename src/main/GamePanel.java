@@ -58,6 +58,8 @@ public class GamePanel extends JPanel implements Runnable
 	private long startTime;
 	private double elapsedSeconds;
 	private final double ROUND_TIME = 60;
+	private boolean timerStarted = false;
+	private boolean timerStopped = false;
 	
 	
 	// === for PAINT LOGIC ==============================
@@ -113,10 +115,25 @@ public class GamePanel extends JPanel implements Runnable
 	public void update()
 	{
 		brush.update();	// keeps brush moving with key inputs
+		double progress = paintGrid.getPaintProgress();	// paint progress
 		
-		// update game time
-		long now = System.nanoTime();
-		elapsedSeconds = (now - startTime) / ONE_BILLION;
+		
+		// start timer when SPACE pressed
+		if (!timerStarted && keyH.spacePressed) {
+			timerStarted = true;
+			startTime = System.nanoTime();
+		}
+		
+		// update timer
+		if (timerStarted && !timerStopped) {
+			long now = System.nanoTime();
+			elapsedSeconds = (now - startTime) / ONE_BILLION;			
+		}
+		
+		// stop timer if all grid is painted
+		if (progress >= 100.00) {
+			timerStopped = true;
+		}
 	}
 	
 	
