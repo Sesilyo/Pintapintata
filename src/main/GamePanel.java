@@ -66,6 +66,9 @@ public class GamePanel extends JPanel implements Runnable
 	public PaintGrid paintGrid;
 	
 	
+	// === for GAMEOVER SCREEN ==========================
+	private GameOverScreen gameOverScreen;
+	
 	// === MAIN CONSTRUCTOR =============================
 	public GamePanel()
 	{
@@ -83,6 +86,9 @@ public class GamePanel extends JPanel implements Runnable
 		
 		brush = new Brush(this, keyH);	// instantiate Brush here
 		startTime = System.nanoTime();
+		
+		// initialize game over screen
+		gameOverScreen = new GameOverScreen(SCRN_WIDTH, SCRN_HEIGHT);
 	}
 	
 	public void startGameThread()
@@ -114,6 +120,21 @@ public class GamePanel extends JPanel implements Runnable
 	
 	public void update()
 	{
+		// handle game over inputs
+		if (gameOverScreen.isVisible()) {
+			if (keyH.rPressed) {
+				resetGame();
+				gameOverScreen.hide();
+			}
+			
+			if (keyH.escPressed) {
+				System.exit(0);
+			}
+			
+			return;
+		}
+		
+		
 		brush.update();	// keeps brush moving with key inputs
 		double progress = paintGrid.getPaintProgress();	// paint progress
 		
@@ -133,9 +154,26 @@ public class GamePanel extends JPanel implements Runnable
 		// stop timer if all grid is painted
 		if (progress >= 100.00) {
 			timerStopped = true;
+			gameOverScreen.show(elapsedSeconds);
 		}
 	}
+
 	
+	// helper methods for game over screen
+	private void resetGame()
+	{
+		paintGrid = new PaintGrid(
+				CANVAS_X, CANVAS_Y,
+				CANVAS_WIDTH, CANVAS_HEIGHT,
+				TILE_SIZE
+		);
+		
+		brush.setDefaultValues();
+		timerStarted = false;
+		timerStopped = false;
+		elapsedSeconds = 0;
+		startTime = System.nanoTime();
+	}
 	
 	// === DRAW | the "pencil" per se ==========================
 	/**
@@ -212,6 +250,7 @@ public class GamePanel extends JPanel implements Runnable
 		paintGrid.draw(g2);
 		brush.draw(g2);
 		
+		gameOverScreen.draw(g2);
 		
 		g2.dispose();
 	}
