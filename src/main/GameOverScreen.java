@@ -61,21 +61,22 @@ public class GameOverScreen
 		g2.drawString(gameOverText, (scrnWidth - textWidth) / 2, 250);
 		
 		// display the overall-time of player
-		g2.setFont(FontManager.PIXEL_FONT.deriveFont(48f));
-		String timeText = String.format("Time: %.2f sec", timeFinish);
+		g2.setFont(FontManager.PIXEL_FONT.deriveFont(32f));
+		String timeText = String.format("Time: %.2f s", timeFinish);
+		textWidth = g2.getFontMetrics().stringWidth(timeText);
 		g2.drawString(timeText, (scrnWidth - textWidth) / 2, 320);
 		
 		// extra displays
 		// +--- for restart ---+
 		g2.setFont(FontManager.PIXEL_FONT.deriveFont(20f));
 		String restartText = "Press R to restart";
-		textWidth = g2.getFontMetrics().stringWidth(timeText);
+		textWidth = g2.getFontMetrics().stringWidth(restartText);
 		g2.drawString(restartText, (scrnWidth - textWidth) / 2, 400);
 		
 		// +--- for exit ---+
 		g2.setFont(FontManager.PIXEL_FONT.deriveFont(20f));
 		String quitText = "Press ESC to quit";
-		textWidth = g2.getFontMetrics().stringWidth(timeText);
+		textWidth = g2.getFontMetrics().stringWidth(quitText);
 		g2.drawString(quitText, (scrnWidth - textWidth) / 2, 440);
 		
 		// re-enable anti-aliasing for other elements

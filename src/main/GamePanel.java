@@ -1,6 +1,7 @@
 package main;
 
 import java.awt.Color;
+import java.util.Random;
 import java.awt.Dimension;
 import java.awt.Graphics;
 import java.awt.Graphics2D;
@@ -9,11 +10,7 @@ import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 
 // === OWN CLASSES ======================================
-import main.KeyHandler;
 import entity.Brush;
-import main.PaintGrid;
-import main.FontManager;
-import main.MasterExitButton;
 
 public class GamePanel extends JPanel implements Runnable
 {
@@ -37,6 +34,23 @@ public class GamePanel extends JPanel implements Runnable
 	public final static int CANVAS_Y = PROGRESSBAR_TOP_MARGIN + PROGRESSBAR_HEIGHT + 10;
 	// - - - ONE BILLION - - -
 	public final static double ONE_BILLION = 1_000_000_000.0;
+	
+	
+	// === for COLOR RANDOMNESS =========================
+	private final Color[] colorPool = {
+			Color.RED,
+			Color.BLUE,
+			Color.MAGENTA,
+			Color.ORANGE,
+			Color.CYAN,
+			new Color(128, 0, 128) // Purple
+	};
+	
+	private Random random = new Random();
+	
+	// === for LOGO =====================================
+	private java.awt.Image gameLogo;
+	
 	
 	// === set FPS ======================================
 	final int FPS = 60;
@@ -77,7 +91,7 @@ public class GamePanel extends JPanel implements Runnable
 	private final int EXIT_BUTTON_Y = SCRN_HEIGHT - EXIT_BUTTON_SIZE - 10;
 	
 	
-	// === MAIN CONSTRUCTOR =============================
+	// === CONSTRUCTOR ==================================
 	public GamePanel()
 	{
 		this.setPreferredSize(new Dimension(SCRN_WIDTH, SCRN_HEIGHT));
@@ -85,6 +99,10 @@ public class GamePanel extends JPanel implements Runnable
 		this.setDoubleBuffered(true);
 		this.addKeyListener(keyH);
 		this.setFocusable(true);
+		
+		gameLogo = new javax.swing.ImageIcon(
+				getClass().getResource("/brush_assets/brush.png")
+		).getImage();
 		
 		paintGrid = new PaintGrid(
 				CANVAS_X, CANVAS_Y,
@@ -94,6 +112,7 @@ public class GamePanel extends JPanel implements Runnable
 		
 		brush = new Brush(this, keyH);	// instantiate Brush here
 		startTime = System.nanoTime();
+		setRandomPaintColor();			// choose a random color from color pool		
 		
 		// master exit button
 		masterExitButton = new MasterExitButton(EXIT_BUTTON_X, EXIT_BUTTON_Y, EXIT_BUTTON_SIZE);
@@ -180,6 +199,14 @@ public class GamePanel extends JPanel implements Runnable
 			gameOverScreen.show(elapsedSeconds);
 		}
 	}
+	
+	// helper method to pick a random color
+	private void setRandomPaintColor()
+	{
+		int randomIndex = random.nextInt(colorPool.length);
+		Color selectedColor = colorPool[randomIndex];
+		paintGrid.setPaintColor(selectedColor);
+	}
 
 	
 	// helper methods for game over screen
@@ -200,7 +227,7 @@ public class GamePanel extends JPanel implements Runnable
 	
 	// === DRAW | the "pencil" per se ==========================
 	/**
-	 * Renders all visual elements of the panel, including:
+	 * renders all visual elements of the panel, including:
 	 * -	canvas area
 	 * -	border
 	 * -	progress bar
@@ -262,11 +289,20 @@ public class GamePanel extends JPanel implements Runnable
 		// === PROGRESS BAR SECTION ================================================
 		
 		
-		// title
+		// logo & title
+		int logoSize = 24;
+		int titleX 	 = 20;
+		int titleY 	 = 22;
+		
+		g2.drawImage(gameLogo, titleX, titleY - logoSize + 4,
+				logoSize, logoSize, null
+		);
+		
+		
 		g2.setFont(FontManager.PIXEL_FONT.deriveFont(18f));
 		g2.setColor(Color.WHITE);
 		// parameters of drawString("text", x-cord start point, y-cord start point)
-		g2.drawString("Pintapintata", 20, 22);
+		g2.drawString("Pintapintata", titleX + logoSize + 8, titleY);
 		
 		
 		// - - - draw clock - - -
