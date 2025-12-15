@@ -2,17 +2,18 @@ package main;
 
 import java.awt.Color;
 import java.awt.Dimension;
-import java.awt.Font;
 import java.awt.Graphics;
 import java.awt.Graphics2D;
-
-import javax.swing.JLabel;
 import javax.swing.JPanel;
+import java.awt.event.MouseAdapter;
+import java.awt.event.MouseEvent;
 
 // === OWN CLASSES ======================================
 import main.KeyHandler;
 import entity.Brush;
 import main.PaintGrid;
+import main.FontManager;
+import main.MasterExitButton;
 
 public class GamePanel extends JPanel implements Runnable
 {
@@ -57,7 +58,6 @@ public class GamePanel extends JPanel implements Runnable
 	// === for TIMER LOGIC ==============================
 	private long startTime;
 	private double elapsedSeconds;
-	private final double ROUND_TIME = 60;
 	private boolean timerStarted = false;
 	private boolean timerStopped = false;
 	
@@ -68,6 +68,14 @@ public class GamePanel extends JPanel implements Runnable
 	
 	// === for GAMEOVER SCREEN ==========================
 	private GameOverScreen gameOverScreen;
+	
+	
+	// === for MASTER EXIT BUTTON =======================
+	private MasterExitButton masterExitButton;
+	private final int EXIT_BUTTON_SIZE = 50;
+	private final int EXIT_BUTTON_X = 10;
+	private final int EXIT_BUTTON_Y = SCRN_HEIGHT - EXIT_BUTTON_SIZE - 10;
+	
 	
 	// === MAIN CONSTRUCTOR =============================
 	public GamePanel()
@@ -87,15 +95,29 @@ public class GamePanel extends JPanel implements Runnable
 		brush = new Brush(this, keyH);	// instantiate Brush here
 		startTime = System.nanoTime();
 		
+		// master exit button
+		masterExitButton = new MasterExitButton(EXIT_BUTTON_X, EXIT_BUTTON_Y, EXIT_BUTTON_SIZE);
+		
+		this.addMouseListener(new MouseAdapter() {
+			@Override
+			public void mousePressed(MouseEvent e) {
+				if (masterExitButton.isClicked(e.getX(), e.getY())) {
+					System.exit(0);
+				}
+			}
+		});
+		
 		// initialize game over screen
 		gameOverScreen = new GameOverScreen(SCRN_WIDTH, SCRN_HEIGHT);
 	}
+	
 	
 	public void startGameThread()
 	{	
 		gameThread = new Thread(this);
 		gameThread.start();
 	}
+	
 	
 	@Override
 	public void run()
@@ -117,6 +139,7 @@ public class GamePanel extends JPanel implements Runnable
 			}
 		}
 	}
+	
 	
 	public void update()
 	{
@@ -201,7 +224,7 @@ public class GamePanel extends JPanel implements Runnable
 		g2.setColor(Color.BLACK);
 		g2.drawRect(CANVAS_X, CANVAS_Y, CANVAS_WIDTH, CANVAS_HEIGHT);
 		
-		
+		// === PROGRESS BAR SECTION ==========================================
 		// - - - draw progress bar area - - -
 		g2.setColor(Color.GREEN);
 		
@@ -236,19 +259,33 @@ public class GamePanel extends JPanel implements Runnable
 		// borders
 		g2.setColor(Color.BLACK);
 		g2.drawRect(CANVAS_X, PROGRESSBAR_TOP_MARGIN, maxWidth, PROGRESSBAR_HEIGHT);
+		// === PROGRESS BAR SECTION ================================================
+		
+		
+		// title
+		g2.setFont(FontManager.PIXEL_FONT.deriveFont(18f));
+		g2.setColor(Color.WHITE);
+		// parameters of drawString("text", x-cord start point, y-cord start point)
+		g2.drawString("Pintapintata", 20, 22);
 		
 		
 		// - - - draw clock - - -
-		g2.setColor(Color.WHITE);
-		g2.drawString(
-				"Time: " + String.format("%.1f", elapsedSeconds),
-				20, 30
+		g2.setFont(FontManager.PIXEL_FONT.deriveFont(20f));
+		g2.drawString("Time: " + String.format("%.1f s", elapsedSeconds),
+					  20, 70
 		);
-				
+		
+		
+		// - - - draw numerical progress tracker - - -
+		g2.setFont(FontManager.PIXEL_FONT.deriveFont(15f));
+		String progressText = String.format("Progress: %.1f%%", progress);
+		g2.drawString(progressText, CANVAS_X + 250, PROGRESSBAR_HEIGHT + 3);
+		
 		
 		// - - - draw brush - - -
 		paintGrid.draw(g2);
 		brush.draw(g2);
+		masterExitButton.draw(g2);
 		
 		gameOverScreen.draw(g2);
 		

@@ -5,9 +5,11 @@ import java.awt.Font;
 import java.awt.Graphics2D;
 import java.awt.RenderingHints;
 
+// === OWN IMPORTS ===
+import main.FontManager;
+
 public class GameOverScreen
 {
-	private Font pixelFont;
 	private boolean visible;
 	private double timeFinish;
 	
@@ -20,21 +22,6 @@ public class GameOverScreen
 		this.scrnWidth  = scrnWidth;
 		this.scrnHeight = scrnHeight;
 		this.visible 	= false;
-		
-		loadFont();
-	}
-	
-	private void loadFont()
-	{
-		try {
-			pixelFont = Font.createFont(Font.TRUETYPE_FONT,
-										getClass().getResourceAsStream("fonts/PressStart2P-Regular.ttf")
-						);
-		} catch (Exception e) {
-			e.printStackTrace();
-			// if font won't load, default is Monospace-d
-			pixelFont = new Font("Monospaced", Font.BOLD, 24);
-		}
 	}
 	
 	public void show(double time)
@@ -68,28 +55,28 @@ public class GameOverScreen
 		
 		// game over text
 		g2.setColor(Color.WHITE);
-		g2.setFont(pixelFont.deriveFont(48f));
+		g2.setFont(FontManager.PIXEL_FONT.deriveFont(48f));
 		String gameOverText = "GAME OVER!";
 		int textWidth = g2.getFontMetrics().stringWidth(gameOverText);
 		g2.drawString(gameOverText, (scrnWidth - textWidth) / 2, 250);
 		
 		// display the overall-time of player
-		g2.setFont(pixelFont.deriveFont(32f));
+		g2.setFont(FontManager.PIXEL_FONT.deriveFont(48f));
 		String timeText = String.format("Time: %.2f sec", timeFinish);
 		g2.drawString(timeText, (scrnWidth - textWidth) / 2, 320);
 		
 		// extra displays
 		// +--- for restart ---+
-		g2.setFont(pixelFont.deriveFont(20f));
+		g2.setFont(FontManager.PIXEL_FONT.deriveFont(20f));
 		String restartText = "Press R to restart";
 		textWidth = g2.getFontMetrics().stringWidth(timeText);
 		g2.drawString(restartText, (scrnWidth - textWidth) / 2, 400);
 		
 		// +--- for exit ---+
-		g2.setFont(pixelFont.deriveFont(20f));
+		g2.setFont(FontManager.PIXEL_FONT.deriveFont(20f));
 		String quitText = "Press ESC to quit";
 		textWidth = g2.getFontMetrics().stringWidth(timeText);
-		g2.drawString(restartText, (scrnWidth - textWidth) / 2, 440);
+		g2.drawString(quitText, (scrnWidth - textWidth) / 2, 440);
 		
 		// re-enable anti-aliasing for other elements
 		g2.setRenderingHint(RenderingHints.KEY_TEXT_ANTIALIASING,

@@ -23,6 +23,7 @@ public class Main
 		window.setResizable(false);
 		window.setTitle("Pintapintata");
 		window.getContentPane().setLayout(new FlowLayout());
+		window.setUndecorated(true);
 		
 		// - - - for icon - - -
 		ImageIcon icon = new ImageIcon("C:\\Users\\Seth\\eclipse-workspace\\Pintapintata\\res\\brush_assets\\brush.png");
