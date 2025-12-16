@@ -4,7 +4,7 @@ import java.awt.Color;
 import java.awt.Graphics2D;
 
 /**
- * manage a grid-based painting surface
+ * Manage a grid-based painting surface.
  */
 public class PaintGrid
 {	
@@ -17,7 +17,7 @@ public class PaintGrid
 	private Color paintColor = Color.BLACK; // default color: black
 	
 	/**
-	 * constructor to initialize the painting grid and its dimensions
+	 * Constructor to initialize the painting grid and its dimensions.
 	 * @param originX  - starting x coordinate on the canvas
 	 * @param originY  - starting y coordinate on the canvas
 	 * @param canvasW  - total width of the canvas
@@ -42,7 +42,7 @@ public class PaintGrid
 	
 	
 	/**
-	 * sets current color used when painting
+	 * Sets current color used when painting.
 	 * @param color - random color
 	 */
 	public void setPaintColor(Color color)
@@ -52,11 +52,11 @@ public class PaintGrid
 	
 	
 	/**
-	 * paint tiles that fall within the square brush area
-	 * defined by the provided screen coordinates and brush size
-	 * @param px		x coordinate of the center of the brush
-	 * @param py		y coordinate of the center of the brush
-	 * @param brushSize	diameter of the circular brush
+	 * Paint tiles that fall within the square brush area
+	 * defined by the provided screen coordinates and brush size.
+	 * @param px		- x coordinate of the center of the brush
+	 * @param py		- y coordinate of the center of the brush
+	 * @param brushSize	- diameter of the circular brush
 	 */
 	public void paintPixel(int px, int py, int brushSize)
 	/* paints the pixels within the paint grid matrix,
@@ -101,7 +101,7 @@ public class PaintGrid
 	
 	
 	/**
-	 * renders current painted tiles onto provided Graphics2D context
+	 * Renders current painted tiles onto provided Graphics2D context.
 	 * @param g2 - Graphics2D context to draw upon
 	 */
 	public void draw(Graphics2D g2)
@@ -121,7 +121,7 @@ public class PaintGrid
 	
 	
 	/**
-	 * calculates current percentage of the grid that has been painted
+	 * Calculates current percentage of the grid that has been painted.
 	 * @return the percentage of painted tiles as a double (0.00 - 100.00)
 	 */
 	public double getPaintProgress()

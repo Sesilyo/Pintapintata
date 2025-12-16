@@ -12,6 +12,10 @@ import java.awt.event.MouseEvent;
 // === OWN CLASSES ======================================
 import entity.Brush;
 
+/**
+ * The main panel where all game rendering & logic updates occur.
+ * Implements Runnable for the game loop thread.
+ */
 public class GamePanel extends JPanel implements Runnable
 {
 	// === SCREEN SETTINGS ==============================
@@ -37,6 +41,9 @@ public class GamePanel extends JPanel implements Runnable
 	
 	
 	// === for COLOR RANDOMNESS =========================
+	/**
+	 * Pool of available colors for the current painting game session.
+	 */
 	private final Color[] colorPool = {
 			Color.RED,
 			Color.BLUE,
@@ -90,16 +97,20 @@ public class GamePanel extends JPanel implements Runnable
 	private final int EXIT_BUTTON_X = 10;
 	private final int EXIT_BUTTON_Y = SCRN_HEIGHT - EXIT_BUTTON_SIZE - 10;
 	
-	
+	/**
+	 * Constructor for the GamePanel. Sets up initial configurations, load
+	 * assets, & initialize game objects
+	 */
 	// === CONSTRUCTOR ==================================
 	public GamePanel()
 	{
 		this.setPreferredSize(new Dimension(SCRN_WIDTH, SCRN_HEIGHT));
 		this.setBackground(Color.gray);
-		this.setDoubleBuffered(true);
+		this.setDoubleBuffered(true); // improves rendering performance
 		this.addKeyListener(keyH);
 		this.setFocusable(true);
 		
+		// load game logo
 		gameLogo = new javax.swing.ImageIcon(
 				getClass().getResource("/brush_assets/brush.png")
 		).getImage();
@@ -110,18 +121,19 @@ public class GamePanel extends JPanel implements Runnable
 				TILE_SIZE
 		);
 		
-		brush = new Brush(this, keyH);	// instantiate Brush here
+		brush = new Brush(this, keyH);	// instantiate Brush object
 		startTime = System.nanoTime();
 		setRandomPaintColor();			// choose a random color from color pool		
 		
 		// master exit button
 		masterExitButton = new MasterExitButton(EXIT_BUTTON_X, EXIT_BUTTON_Y, EXIT_BUTTON_SIZE);
 		
+		// add mouse listener to handle button clicks
 		this.addMouseListener(new MouseAdapter() {
 			@Override
 			public void mousePressed(MouseEvent e) {
 				if (masterExitButton.isClicked(e.getX(), e.getY())) {
-					System.exit(0);
+					System.exit(0); // exit application
 				}
 			}
 		});
@@ -130,7 +142,9 @@ public class GamePanel extends JPanel implements Runnable
 		gameOverScreen = new GameOverScreen(SCRN_WIDTH, SCRN_HEIGHT);
 	}
 	
-	
+	/**
+	 * Starts the main game thread.
+	 */
 	public void startGameThread()
 	{	
 		gameThread = new Thread(this);
@@ -138,9 +152,13 @@ public class GamePanel extends JPanel implements Runnable
 	}
 	
 	
+	/**
+	 * Main game loop logic. Updates game state at a fixed FPS.
+	 */
 	@Override
 	public void run()
 	{
+		// time calculation for fixed FPS game loop
 		double drwInterval = 1000000000 / FPS;
 		double delta  = 0;
 		long lastTime = System.nanoTime();
@@ -152,14 +170,17 @@ public class GamePanel extends JPanel implements Runnable
 			lastTime = currentTime;
 			
 			if (delta >= 1) {
-				update();
-				repaint();
+				update();		// update game logic
+				repaint();		// redraw the screen
 				delta--;
 			}
 		}
 	}
 	
 	
+	/**
+	 * Updates the state of all game objects & handles game state transition
+	 */
 	public void update()
 	{
 		// handle game over inputs
@@ -193,14 +214,18 @@ public class GamePanel extends JPanel implements Runnable
 			elapsedSeconds = (now - startTime) / ONE_BILLION;			
 		}
 		
-		// stop timer if all grid is painted
+		/* stop timer if all grid is painted
+		 * 100% completion
+		 */
 		if (progress >= 100.00) {
 			timerStopped = true;
 			gameOverScreen.show(elapsedSeconds);
 		}
 	}
 	
-	// helper method to pick a random color
+	/**
+	 * Helper method to randomly select new color for the current game.
+	 */
 	private void setRandomPaintColor()
 	{
 		int randomIndex = random.nextInt(colorPool.length);
@@ -209,9 +234,12 @@ public class GamePanel extends JPanel implements Runnable
 	}
 
 	
-	// helper methods for game over screen
+	/**
+	 * Resets game state to start a new round
+	 */
 	private void resetGame()
 	{
+		// recreate grid to clear all painted pixels
 		paintGrid = new PaintGrid(
 				CANVAS_X, CANVAS_Y,
 				CANVAS_WIDTH, CANVAS_HEIGHT,
@@ -219,13 +247,13 @@ public class GamePanel extends JPanel implements Runnable
 		);
 		
 		brush.setDefaultValues();
+		setRandomPaintColor();
 		timerStarted = false;
 		timerStopped = false;
 		elapsedSeconds = 0;
 		startTime = System.nanoTime();
 	}
 	
-	// === DRAW | the "pencil" per se ==========================
 	/**
 	 * renders all visual elements of the panel, including:
 	 * -	canvas area
@@ -235,6 +263,7 @@ public class GamePanel extends JPanel implements Runnable
 	 * @param g the Graphics context provided by Swing for rendering;
 	 * 			automatically supplied during repaint operations
 	 */
+	// === DRAW | the "pencil" per se ==========================
 	@Override
 	public void paintComponent(Graphics g)
 	{
@@ -253,37 +282,29 @@ public class GamePanel extends JPanel implements Runnable
 		
 		// === PROGRESS BAR SECTION ==========================================
 		// - - - draw progress bar area - - -
-		g2.setColor(Color.GREEN);
-		
-		
 		int progressBarX = MARGIN_LEFT;
 		int progressBarY = PROGRESSBAR_TOP_MARGIN;
 		int progressBarW = SCRN_WIDTH - (MARGIN_LEFT + MARGIN_RIGHT);
-		
-		
-		// fillRect(left, top, width, height)
-		g2.fillRect(progressBarX, progressBarY, progressBarW, PROGRESSBAR_HEIGHT);
-		
-		
-		// dynamic progress bar
-		double progress = paintGrid.getPaintProgress();
+		// total width progress bar can occupy
 		int maxWidth = SCRN_WIDTH - CANVAS_X - MARGIN_RIGHT;
-		
-		
-		int fillWidth = (int)(maxWidth * progress / 100.00);
-		
 		
 		// progress bar background
 		g2.setColor(Color.DARK_GRAY);
 		g2.fillRect(CANVAS_X, PROGRESSBAR_TOP_MARGIN, maxWidth, PROGRESSBAR_HEIGHT);
 		
+		// fillRect(left, top, width, height)
+		g2.setColor(new Color(17, 87, 9));
+		g2.fillRect(progressBarX, progressBarY, progressBarW, PROGRESSBAR_HEIGHT);
 		
-		// fill
+		// dynamic progress bar
+		double progress = paintGrid.getPaintProgress();
+		int fillWidth = (int)(maxWidth * progress / 100.00);		
+		   
+		// fill for dynamic progress bar
 		g2.setColor(Color.GREEN);
 		g2.fillRect(CANVAS_X, PROGRESSBAR_TOP_MARGIN, fillWidth, PROGRESSBAR_HEIGHT);
 		
-		
-		// borders
+		// borders for progress bar area
 		g2.setColor(Color.BLACK);
 		g2.drawRect(CANVAS_X, PROGRESSBAR_TOP_MARGIN, maxWidth, PROGRESSBAR_HEIGHT);
 		// === PROGRESS BAR SECTION ================================================
@@ -294,25 +315,26 @@ public class GamePanel extends JPanel implements Runnable
 		int titleX 	 = 20;
 		int titleY 	 = 22;
 		
+		// draw logo
 		g2.drawImage(gameLogo, titleX, titleY - logoSize + 4,
 				logoSize, logoSize, null
 		);
 		
-		
+		// draw game title "Pintapintata"
 		g2.setFont(FontManager.PIXEL_FONT.deriveFont(18f));
 		g2.setColor(Color.WHITE);
 		// parameters of drawString("text", x-cord start point, y-cord start point)
 		g2.drawString("Pintapintata", titleX + logoSize + 8, titleY);
 		
 		
-		// - - - draw clock - - -
+		// draw timer display
 		g2.setFont(FontManager.PIXEL_FONT.deriveFont(20f));
 		g2.drawString("Time: " + String.format("%.1f s", elapsedSeconds),
 					  20, 70
 		);
 		
 		
-		// - - - draw numerical progress tracker - - -
+		// draw numerical progress tracker
 		g2.setFont(FontManager.PIXEL_FONT.deriveFont(15f));
 		String progressText = String.format("Progress: %.1f%%", progress);
 		g2.drawString(progressText, CANVAS_X + 250, PROGRESSBAR_HEIGHT + 3);

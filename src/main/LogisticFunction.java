@@ -1,17 +1,7 @@
-/*
- * [] File_name:   LogisticFunction.java
- * [] Description: - The logistic function and its logic
- * []			     are stored here.
- * []			   - The purposes of this is to solve for the acceleration
- * []				 and the maintenance of speed after acceleration of the
- * []				 brush/pen when it is long pressed
- * [] Author:	   @Seth
- * 
- */
-
 package main;
 
-/*
+/**
+ * Implements the Logistic function (Sigmoid's function).
  * The Logistic function is defined as:
  * 
  * f(x) = L / {1 + [e ^ -k(x - x0)]},
@@ -21,15 +11,24 @@ package main;
  * 		L  : maximum value
  * 		k  : growth rate
  * 		x0 : x value of the midPoint
+ * 
+ * This calls can be used to model S-shaped curves often found
+ * in animation easing.
  */
-
 public class LogisticFunction
 {
 	double maxVal;			 // L
 	double growthRate;		 // k
 	double midPoint;		 // x0
 	
-	// = = = CONSTRUCTOR = = =
+	
+	/**
+	 * Constructor.
+	 * 
+	 * @param maxVal	 - L,  maximum y value
+	 * @param growthRate - k,  steepness of the curve
+	 * @param midPoint	 - x0, x value at which growth is fastest
+	 */
 	public LogisticFunction(double maxVal, double growthRate, double midPoint)
 	{
 		this.maxVal = maxVal;
@@ -37,6 +36,13 @@ public class LogisticFunction
 		this.midPoint   = midPoint;
 	}
 	
+	
+	/**
+	 * Calculates the output (y-value) of the logistic function for a given input-x.
+	 * 
+	 * @param x
+	 * @return
+	 */
 	public double logiFunc(double x)
 	{
 		double y;				// the output
@@ -52,5 +58,10 @@ public class LogisticFunction
 		return y;
 	}
 	
+	
+	/**
+	 * Returns maximum value (L) used to configure this function instance.
+	 * @return upper asymptote value.
+	 */
 	public double getMaxVal() { return this.maxVal;}
 }

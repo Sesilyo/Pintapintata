@@ -1,13 +1,13 @@
 package main;
 
 import java.awt.Color;
-import java.awt.Font;
 import java.awt.Graphics2D;
 import java.awt.RenderingHints;
 
-// === OWN IMPORTS ===
-import main.FontManager;
-
+/**
+ * Manages display of the Game-Over screen overlay.
+ * Includes the display of final score/time and restart/exit options.
+ */
 public class GameOverScreen
 {
 	private boolean visible;
@@ -17,29 +17,54 @@ public class GameOverScreen
 	private final int scrnWidth;
 	private final int scrnHeight;
 	
+	/**
+	 * Initializes the Game Over screen manager with dimensions of
+	 * display area.
+	 * @param scrnWidth  - width of game panel
+	 * @param scrnHeight - height of game panel
+	 */
 	public GameOverScreen(int scrnWidth, int scrnHeight)
 	{
 		this.scrnWidth  = scrnWidth;
 		this.scrnHeight = scrnHeight;
-		this.visible 	= false;
+		this.visible 	= false;		// screen is hidden by default
 	}
 	
+	
+	/**
+	 * Displays Game Over screen & records final time of player.
+	 * @param time - player's final time in seconds
+	 */
 	public void show(double time)
 	{
 		this.timeFinish = time;
 		this.visible = true;
 	}
 	
+	
+	/**
+	 * Hides the Game Over screen.
+	 */
 	public void hide()
 	{
 		this.visible = false;
 	}
 	
+	
+	/**
+	 * Checks if the Game Over screen is currently visible.
+	 * @return - True if visible, false otherwise
+	 */
 	public boolean isVisible()
 	{
 		return visible;
 	}
 	
+	
+	/**
+	 * Renders Game Over screen onto provided Graphics2D context.
+	 * @param g2 - Graphics2D context used for drawing
+	 */
 	public void draw(Graphics2D g2)
 	{
 		if (!visible) return;
